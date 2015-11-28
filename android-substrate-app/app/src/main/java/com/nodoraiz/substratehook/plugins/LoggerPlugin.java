@@ -35,15 +35,18 @@ public class LoggerPlugin {
 
                             for (final Method method : hookedClass.getDeclaredMethods()) {
 
-                                String parameters = "";
-                                for (Class parameterClazz : method.getParameterTypes()) {
-                                    parameters += parameterClazz.getName() + ", ";
+                                String arguments = "";
+                                StringBuilder parameters = new StringBuilder();
+                                if(method.getParameterTypes().length > 0) {
+                                    for (Class parameterClazz : method.getParameterTypes()) {
+                                        parameters.append("," + parameterClazz.getName());
+                                    }
+                                    arguments = parameters.substring(1);
                                 }
-                                parameters = parameters.substring(0, parameters.length() - 2);
-                                final String methodSignature = className + "." + method.getName() + "(" + parameters + ")";
+                                final String methodSignature = className + "." + method.getName() + "(" + arguments + ")";
 
                                 if (Modifier.isAbstract(method.getModifiers())) {
-                                    Log.d(this.getClass().getName(), "IGNORED ABSTRACT METHOD: " + methodSignature);
+                                    Log.d(this.getClass().getName(), "IGNORED METHOD: " + methodSignature);
 
                                 } else {
 
@@ -54,13 +57,29 @@ public class LoggerPlugin {
 
                                             public Object invoked(Object capturedInstance, Object... args) throws Throwable {
 
+                                                try{
+                                                    throw new Exception("==> STACK_TRACE_PRINT");
+                                                }catch (Exception e){
+                                                    Log.i(this.getClass().getName(), "\n\n\n\n\n\n\n\n\n\n\n\n");
+                                                    Log.i(this.getClass().getName(), "STACK_TRACE_START => " + methodSignature);
+                                                    Log.i(this.getClass().getName(), "\n\n\n\n\n\n\n\n\n\n\n\n");
+                                                    e.printStackTrace();
+                                                    Log.i(this.getClass().getName(), "\n\n\n\n\n\n\n\n\n\n\n\n");
+                                                    Log.i(this.getClass().getName(), "STACK_TRACE_END => " + methodSignature);
+                                                    Log.i(this.getClass().getName(), "\n\n\n\n\n\n\n\n\n\n\n\n");
+                                                }
+
                                                 try {
-                                                    StringBuffer stringBuffer = new StringBuffer();
-                                                    for(int i=0;i<args.length;i++){
-                                                        stringBuffer.append(args[i] + ", ");
+                                                    String arguments = "";
+                                                    StringBuilder stringBuilder = new StringBuilder();
+                                                    if(args.length > 0) {
+                                                        for (int i = 0; i < args.length; i++) {
+                                                            stringBuilder.append("," + args[i]);
+                                                        }
+                                                        arguments = stringBuilder.substring(1);
                                                     }
 
-                                                    Log.i(HOOK_LOG_BREADCRUMB, "ENTER " + methodSignature + PARAMETERS_SEPARATOR + stringBuffer.substring(0, stringBuffer.length() - 2));
+                                                    Log.i(HOOK_LOG_BREADCRUMB, "ENTER " + methodSignature + PARAMETERS_SEPARATOR + arguments);
                                                     Object result = this.invoke(capturedInstance, args);
                                                     Log.i(HOOK_LOG_BREADCRUMB, "EXIT " + methodSignature);
                                                     return result;
